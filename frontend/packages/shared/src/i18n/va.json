@@ -1,0 +1,81 @@
+{
+  "nav": {
+    "carta": "Carta",
+    "galeria": "Galeria",
+    "reservar": "Reservar taula"
+  },
+  "comun": {
+    "siguiente": "Següent",
+    "atras": "Arrere",
+    "cargando": "Carregant...",
+    "foto_proximamente": "Foto pròximament"
+  },
+  "hero": {
+    "titulo": "Cañís",
+    "subtitulo": "Cuina valenciana de paella a llenya a Benissa",
+    "cta": "Reservar taula"
+  },
+  "argumento": {
+    "eyebrow": "Cuina amb identitat pròpia",
+    "titulo_pre": "Només 7 paelles",
+    "titulo_post": "per torn",
+    "texto": "Cuinem la paella a llenya, una a una, sobre el paeller. Per això només podem servir 7 per torn: no és una limitació, és la garantia de que la teua eixirà al seu punt.",
+    "cita": "El foc i la llenya no es poden apressar. Cada paella necessita el seu temps i el seu lloc en el paeller — per això reservem abans d'encendre."
+  },
+  "galeria": {
+    "titulo": "Un espai davant del Penyal d'Ifac",
+    "salon": { "titulo": "El saló", "texto": "Taules amb encant, cada una diferent, a un pas de la plaça." },
+    "horno": { "titulo": "El paeller", "texto": "Foc de llenya real, el secret del socarrat." },
+    "terraza": { "titulo": "La terrassa", "texto": "Vistes al Penyal d'Ifac i al nucli antic de Benissa." },
+    "arroz": { "titulo": "Els nostres arrossos", "texto": "Valenciana, marisc i senyoret, cuinats al moment." }
+  },
+  "carta": {
+    "titulo": "La carta",
+    "nota": "Preus estimats — s'actualitzaran amb la carta definitiva"
+  },
+  "ctaBanner": {
+    "titulo": "Reserva la teua",
+    "texto": "Abans de que s'acaben les 7 paelles del torn que vols.",
+    "boton": "Anar al formulari"
+  },
+  "footer": {
+    "subtitulo": "Cuina valenciana de paella a llenya",
+    "direccion_titulo": "On estem",
+    "direccion": "Plaça de Benimarco, 03720 Benissa, Alacant",
+    "horario_titulo": "Horari",
+    "horario_cerrado": "Dimarts tancat",
+    "horario_mediodia": "Migdia 13:00–15:30 (diumenge fins a les 17:30)",
+    "horario_noche": "Nit 19:00–21:30 (dim.–dis.)",
+    "reservas_titulo": "Reserves",
+    "reservas_tel": "També per telèfon"
+  },
+  "reserva": {
+    "titulo": "Reserva la teua taula",
+    "paso_fecha": "Quin dia vols vindre?",
+    "paso_paella": "Vols paella?",
+    "paella_si": "Sí, vull paella",
+    "paella_no": "No, sense paella",
+    "paella_argumento": "Només servim 7 paelles per torn: reserva la teua.",
+    "paso_turno": "Tria el teu torn",
+    "paso_datos": "Les teues dades",
+    "nombre": "Nom",
+    "telefono": "Telèfon",
+    "personas": "Nombre de persones",
+    "confirmar": "Confirmar reserva",
+    "enviando": "Enviant...",
+    "sin_turnos": "No queden torns disponibles per a eixa opció este dia.",
+    "exito": "Reserva confirmada! T'esperem.",
+    "otra_reserva": "Fer una altra reserva",
+    "error_mesas": "Ho sentim, no queden taules lliures en eixe torn.",
+    "error_paellas": "Ho sentim, les 7 paelles d'eixe torn ja estan reservades.",
+    "error_generico": "No s'ha pogut completar la reserva. Torna-ho a provar."
+  },
+  "panel": {
+    "titulo": "Panell de reserves",
+    "mesas": "taules",
+    "paellas": "paelles",
+    "confirmar": "Confirmar",
+    "cancelar": "Cancel·lar",
+    "nueva_reserva": "Nova reserva"
+  }
+}

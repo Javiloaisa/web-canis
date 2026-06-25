@@ -1,0 +1,81 @@
+{
+  "nav": {
+    "carta": "Carta",
+    "galeria": "Galería",
+    "reservar": "Reservar mesa"
+  },
+  "comun": {
+    "siguiente": "Siguiente",
+    "atras": "Atrás",
+    "cargando": "Cargando...",
+    "foto_proximamente": "Foto próximamente"
+  },
+  "hero": {
+    "titulo": "Cañís",
+    "subtitulo": "Cocina valenciana de paella a leña en Benissa",
+    "cta": "Reservar mesa"
+  },
+  "argumento": {
+    "eyebrow": "Cocina con identidad propia",
+    "titulo_pre": "Solo 7 paellas",
+    "titulo_post": "por turno",
+    "texto": "Cocinamos la paella a leña, una a una, sobre el paellero. Por eso solo podemos servir 7 por turno: no es una limitación, es la garantía de que la tuya sale en su punto.",
+    "cita": "El fuego y la leña no se pueden apresurar. Cada paella necesita su tiempo y su sitio en el paellero — por eso reservamos antes de encender."
+  },
+  "galeria": {
+    "titulo": "Un espacio frente al Peñón de Ifach",
+    "salon": { "titulo": "El salón", "texto": "Mesas con encanto, cada una distinta, a un paso de la plaza." },
+    "horno": { "titulo": "El paellero", "texto": "Fuego de leña real, el secreto del socarrat." },
+    "terraza": { "titulo": "La terraza", "texto": "Vistas al Peñón de Ifach y al casco antiguo de Benissa." },
+    "arroz": { "titulo": "Nuestros arroces", "texto": "Valenciana, marisco y señoret, cocinados al momento." }
+  },
+  "carta": {
+    "titulo": "La carta",
+    "nota": "Precios estimados — se actualizarán con la carta definitiva"
+  },
+  "ctaBanner": {
+    "titulo": "Reserva la tuya",
+    "texto": "Antes de que se agoten las 7 paellas del turno que quieres.",
+    "boton": "Ir al formulario"
+  },
+  "footer": {
+    "subtitulo": "Cocina valenciana de paella a leña",
+    "direccion_titulo": "Dónde estamos",
+    "direccion": "Plaza de Benimarco, 03720 Benissa, Alicante",
+    "horario_titulo": "Horario",
+    "horario_cerrado": "Martes cerrado",
+    "horario_mediodia": "Mediodía 13:00–15:30 (dom. hasta 17:30)",
+    "horario_noche": "Noche 19:00–21:30 (mié.–sáb.)",
+    "reservas_titulo": "Reservas",
+    "reservas_tel": "También por teléfono"
+  },
+  "reserva": {
+    "titulo": "Reserva tu mesa",
+    "paso_fecha": "¿Qué día quieres venir?",
+    "paso_paella": "¿Quieres paella?",
+    "paella_si": "Sí, quiero paella",
+    "paella_no": "No, sin paella",
+    "paella_argumento": "Solo servimos 7 paellas por turno: reserva la tuya.",
+    "paso_turno": "Elige tu turno",
+    "paso_datos": "Tus datos",
+    "nombre": "Nombre",
+    "telefono": "Teléfono",
+    "personas": "Número de personas",
+    "confirmar": "Confirmar reserva",
+    "enviando": "Enviando...",
+    "sin_turnos": "No quedan turnos disponibles para esa opción este día.",
+    "exito": "¡Reserva confirmada! Te esperamos.",
+    "otra_reserva": "Hacer otra reserva",
+    "error_mesas": "Lo sentimos, no quedan mesas libres en ese turno.",
+    "error_paellas": "Lo sentimos, las 7 paellas de ese turno ya están reservadas.",
+    "error_generico": "No se ha podido completar la reserva. Inténtalo de nuevo."
+  },
+  "panel": {
+    "titulo": "Panel de reservas",
+    "mesas": "mesas",
+    "paellas": "paellas",
+    "confirmar": "Confirmar",
+    "cancelar": "Cancelar",
+    "nueva_reserva": "Nueva reserva"
+  }
+}
