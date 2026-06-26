@@ -24,7 +24,14 @@ class ReservaCreate(BaseModel):
 
 
 class ReservaUpdate(BaseModel):
-    estado: Literal["confirmada", "cancelada"]
+    """Edición parcial de una reserva. Todos los campos son opcionales."""
+
+    franja: str | None = None
+    quiere_paella: bool | None = None
+    nombre: str | None = None
+    telefono: str | None = None
+    personas: int | None = None
+    ha_llegado: bool | None = None
 
 
 class ReservaOut(BaseModel):
@@ -39,4 +46,5 @@ class ReservaOut(BaseModel):
     personas: int
     estado: str
     origen: str
+    ha_llegado: bool
     creada_en: dt.datetime

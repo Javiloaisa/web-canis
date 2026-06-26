@@ -1,6 +1,6 @@
 import datetime as dt
 
-from sqlalchemy import Boolean, Date, DateTime, Integer, String, Time, func
+from sqlalchemy import Boolean, Date, DateTime, Integer, String, Time, false, func
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.db import Base
@@ -18,6 +18,9 @@ class Reserva(Base):
     personas: Mapped[int] = mapped_column(Integer, nullable=False)
     estado: Mapped[str] = mapped_column(String, nullable=False, default="confirmada")
     origen: Mapped[str] = mapped_column(String, nullable=False)
+    ha_llegado: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, default=False, server_default=false()
+    )
     creada_en: Mapped[dt.datetime] = mapped_column(
         DateTime(timezone=True), nullable=False, server_default=func.now()
     )

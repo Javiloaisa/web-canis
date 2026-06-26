@@ -21,7 +21,12 @@ export interface ReservaCreate {
 }
 
 export interface ReservaUpdate {
-  estado: Estado;
+  franja?: string;
+  quiere_paella?: boolean;
+  nombre?: string;
+  telefono?: string;
+  personas?: number;
+  ha_llegado?: boolean;
 }
 
 export interface Reserva {
@@ -34,6 +39,7 @@ export interface Reserva {
   personas: number;
   estado: Estado;
   origen: Origen;
+  ha_llegado: boolean;
   creada_en: string;
 }
 

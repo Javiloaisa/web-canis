@@ -70,6 +70,17 @@ export function createApiClient(baseUrl: string, token?: string | null) {
       });
       return manejarRespuesta(response);
     },
+
+    async eliminarReserva(id: number): Promise<void> {
+      const response = await fetch(`${baseUrl}/reservas/${id}`, {
+        method: "DELETE",
+        headers: cabecerasAuth,
+      });
+      if (!response.ok) {
+        const cuerpo = await response.json().catch(() => null);
+        throw new ApiError(cuerpo?.detail ?? response.statusText, response.status);
+      }
+    },
   };
 }
 
