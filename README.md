@@ -30,7 +30,7 @@ pytest
 ### Login del panel (desarrollo)
 
 - Usuario: `admin`
-- Contraseña: `canis-admin-dev`
+- Contraseña: `12345678`
 
 Cambiar en producción vía las variables de entorno `ADMIN_USERNAME` y
 `ADMIN_PASSWORD_HASH` (hash bcrypt — generar con
