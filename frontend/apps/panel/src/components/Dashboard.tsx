@@ -1,8 +1,10 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
-import { createApiClient, formatoISOLocal, type FranjaDisponibilidad, type Reserva } from "shared";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { createApiClient, formatoISOLocal, FRANJAS, type FranjaDisponibilidad, type Reserva } from "shared";
 import CalendarioDia from "./CalendarioDia";
-import ConfirmarCambioEstado from "./ConfirmarCambioEstado";
-import { IconoFlechaDer, IconoFlechaIzq } from "./Iconos";
+import CalendarioFecha from "./CalendarioFecha";
+import ConfirmarEliminar from "./ConfirmarEliminar";
+import EditarReservaModal from "./EditarReservaModal";
+import { IconoBuscar, IconoCalendario, IconoFlechaDer, IconoFlechaIzq } from "./Iconos";
 import ModalNuevaReserva from "./ModalNuevaReserva";
 import Sidebar from "./Sidebar";
 import StatCard from "./StatCard";
@@ -22,8 +24,17 @@ function formatoFechaLarga(fechaISO: string): string {
     weekday: "long",
     day: "numeric",
     month: "long",
+    year: "numeric",
   });
   return texto.charAt(0).toUpperCase() + texto.slice(1);
+}
+
+function formatoFechaCorta(fechaISO: string): string {
+  return new Date(`${fechaISO}T00:00:00`).toLocaleDateString("es-ES", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  });
 }
 
 export default function Dashboard({ token, onLogout }: Props) {
@@ -38,7 +49,12 @@ export default function Dashboard({ token, onLogout }: Props) {
   const [cargando, setCargando] = useState(false);
   const [sesionExpirada, setSesionExpirada] = useState(false);
   const [franjaModal, setFranjaModal] = useState<string | null>(null);
-  const [reservaPendiente, setReservaPendiente] = useState<Reserva | null>(null);
+  const [reservaEditar, setReservaEditar] = useState<Reserva | null>(null);
+  const [reservaEliminar, setReservaEliminar] = useState<Reserva | null>(null);
+  const [busqueda, setBusqueda] = useState("");
+  const [soloPaellas, setSoloPaellas] = useState(false);
+  const [mostrarCal, setMostrarCal] = useState(false);
+  const navFechaRef = useRef<HTMLDivElement>(null);
 
   const cargar = useCallback(async () => {
     setCargando(true);
@@ -60,11 +76,37 @@ export default function Dashboard({ token, onLogout }: Props) {
     cargar();
   }, [cargar]);
 
-  async function confirmarCambioEstado() {
-    if (!reservaPendiente) return;
-    const nuevoEstado = reservaPendiente.estado === "confirmada" ? "cancelada" : "confirmada";
-    await api.actualizarReserva(reservaPendiente.id, { estado: nuevoEstado });
-    setReservaPendiente(null);
+  useEffect(() => {
+    if (!mostrarCal) return;
+    function alClicarFuera(e: MouseEvent) {
+      if (navFechaRef.current && !navFechaRef.current.contains(e.target as Node)) {
+        setMostrarCal(false);
+      }
+    }
+    function alPulsarEsc(e: KeyboardEvent) {
+      if (e.key === "Escape") setMostrarCal(false);
+    }
+    document.addEventListener("mousedown", alClicarFuera);
+    document.addEventListener("keydown", alPulsarEsc);
+    return () => {
+      document.removeEventListener("mousedown", alClicarFuera);
+      document.removeEventListener("keydown", alPulsarEsc);
+    };
+  }, [mostrarCal]);
+
+  async function toggleLlegada(reserva: Reserva) {
+    try {
+      await api.actualizarReserva(reserva.id, { ha_llegado: !reserva.ha_llegado });
+      await cargar();
+    } catch {
+      setSesionExpirada(true);
+    }
+  }
+
+  async function confirmarEliminar() {
+    if (!reservaEliminar) return;
+    await api.eliminarReserva(reservaEliminar.id);
+    setReservaEliminar(null);
     cargar();
   }
 
@@ -76,7 +118,7 @@ export default function Dashboard({ token, onLogout }: Props) {
 
   if (sesionExpirada) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center gap-4 bg-gray-50 text-gray-900">
+      <div className="flex min-h-screen flex-col items-center justify-center gap-4 bg-[#f5f2ea] text-gray-900">
         <p>Tu sesión ha caducado.</p>
         <button onClick={onLogout} className="text-mediterraneo-600 underline">
           Volver a entrar
@@ -85,61 +127,160 @@ export default function Dashboard({ token, onLogout }: Props) {
     );
   }
 
-  const reservasConfirmadas = reservas.filter((r) => r.estado === "confirmada").length;
-  const reservasCanceladas = reservas.filter((r) => r.estado === "cancelada").length;
+  const confirmadas = reservas.filter((r) => r.estado === "confirmada");
+  const reservasConfirmadas = confirmadas.length;
+  const comensales = confirmadas.reduce((suma, r) => suma + r.personas, 0);
   const paellasTotal = franjas.reduce((suma, f) => suma + f.con_paella, 0);
 
+  const q = busqueda.trim().toLowerCase();
+  const filtrando = q !== "" || soloPaellas;
+  const reservasFiltradas = confirmadas.filter((r) => {
+    if (soloPaellas && !r.quiere_paella) return false;
+    if (q && !`${r.nombre} ${r.telefono}`.toLowerCase().includes(q)) return false;
+    return true;
+  });
+
   return (
-    <div className="min-h-screen flex bg-gray-50">
+    <div className="flex min-h-screen bg-[#f5f2ea] text-[#1f2d37]">
       <Sidebar onLogout={onLogout} />
 
-      <main className="flex-1 px-8 py-8">
-        <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
-          <div>
-            <h1 className="text-2xl font-semibold text-gray-900">Reservas</h1>
-            <p className="text-sm text-gray-500">{formatoFechaLarga(fecha)}</p>
+      <main className="min-w-0 flex-1">
+        <div className="flex items-center justify-between border-b border-[#ece7dc] bg-white px-4 py-3 lg:hidden">
+          <span className="font-display text-[22px] font-semibold italic text-mediterraneo-700">
+            Cañís
+          </span>
+          <button onClick={onLogout} className="text-[13px] font-medium text-[#8a929b]">
+            Cerrar sesión
+          </button>
+        </div>
+
+        <div className="px-4 py-5 lg:px-[34px] lg:pb-12 lg:pt-[30px]">
+          <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
+            <div>
+              <h1 className="font-display text-[28px] font-semibold tracking-[-0.3px] text-mediterraneo-700 sm:text-[34px]">
+                Reservas
+              </h1>
+              <p className="mt-[7px] text-sm text-[#8a929b]">{formatoFechaLarga(fecha)}</p>
+            </div>
+
+            <div ref={navFechaRef} className="relative flex items-center gap-2">
+              <button
+                onClick={() => setFecha(hoyISO())}
+                className="hidden h-11 items-center rounded-[12px] border border-mediterraneo-200 bg-white px-4 text-sm font-semibold text-mediterraneo-700 transition hover:bg-mediterraneo-50 sm:inline-flex"
+              >
+                Hoy
+              </button>
+              <div className="flex items-center overflow-hidden rounded-[12px] border border-mediterraneo-200 bg-white shadow-sm">
+                <button
+                  onClick={() => cambiarDia(-1)}
+                  className="flex h-11 w-11 items-center justify-center border-r border-mediterraneo-100 text-mediterraneo-600 transition hover:bg-mediterraneo-50"
+                  aria-label="Día anterior"
+                >
+                  <IconoFlechaIzq className="h-[18px] w-[18px]" />
+                </button>
+                <button
+                  onClick={() => setMostrarCal((v) => !v)}
+                  aria-label="Elegir fecha"
+                  className="flex h-11 items-center gap-2 px-4 text-[15px] font-bold text-mediterraneo-700 transition hover:bg-mediterraneo-50"
+                >
+                  <IconoCalendario className="h-[18px] w-[18px] text-mediterraneo-600" />
+                  {formatoFechaCorta(fecha)}
+                </button>
+                <button
+                  onClick={() => cambiarDia(1)}
+                  className="flex h-11 w-11 items-center justify-center border-l border-mediterraneo-100 text-mediterraneo-600 transition hover:bg-mediterraneo-50"
+                  aria-label="Día siguiente"
+                >
+                  <IconoFlechaDer className="h-[18px] w-[18px]" />
+                </button>
+              </div>
+
+              {mostrarCal && (
+                <CalendarioFecha
+                  value={fecha}
+                  onSelect={(iso) => {
+                    setFecha(iso);
+                    setMostrarCal(false);
+                  }}
+                />
+              )}
+            </div>
           </div>
 
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => cambiarDia(-1)}
-              className="p-2 rounded-lg border border-gray-300 text-gray-500 hover:bg-gray-100 transition"
-              aria-label="Día anterior"
-            >
-              <IconoFlechaIzq />
-            </button>
-            <input
-              type="date"
-              value={fecha}
-              onChange={(e) => setFecha(e.target.value)}
-              className="px-3 py-2 rounded-lg border border-gray-300 text-sm text-gray-700"
+          <div className="mb-[18px] grid grid-cols-1 gap-3 sm:grid-cols-3 lg:gap-[14px]">
+            <StatCard
+              etiqueta="Reservas confirmadas"
+              valor={reservasConfirmadas}
+              sublabel="en los 8 turnos de hoy"
             />
+            <StatCard etiqueta="Comensales" valor={comensales} sublabel="personas en sala" />
+            <StatCard
+              etiqueta="Paellas reservadas"
+              valor={paellasTotal}
+              sublabel="máx. 7 por turno"
+              variante="destacado"
+            />
+          </div>
+
+          <div className="mb-4 flex flex-wrap items-center gap-3">
+            <div className="relative min-w-[200px] flex-1">
+              <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[#9aa3ad]">
+                <IconoBuscar />
+              </span>
+              <input
+                value={busqueda}
+                onChange={(e) => setBusqueda(e.target.value)}
+                placeholder="Buscar por nombre o teléfono"
+                className="w-full rounded-[10px] border border-[#e3ddd0] bg-white py-2.5 pl-10 pr-3 text-sm text-[#22323d] placeholder:text-[#b6bcc3] transition focus:border-mediterraneo-400 focus:outline-none focus:ring-2 focus:ring-mediterraneo-200"
+              />
+            </div>
             <button
-              onClick={() => cambiarDia(1)}
-              className="p-2 rounded-lg border border-gray-300 text-gray-500 hover:bg-gray-100 transition"
-              aria-label="Día siguiente"
+              onClick={() => setSoloPaellas((v) => !v)}
+              aria-pressed={soloPaellas}
+              className={`flex items-center gap-2 rounded-[10px] border px-3.5 py-2.5 text-sm font-semibold transition ${
+                soloPaellas
+                  ? "border-socarrat-300 bg-socarrat-50 text-socarrat-600"
+                  : "border-[#e3ddd0] bg-white text-[#6b7682] hover:bg-[#f5f3ee]"
+              }`}
             >
-              <IconoFlechaDer />
+              Solo paellas
             </button>
           </div>
-        </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 mb-6">
-          <StatCard etiqueta="Reservas confirmadas" valor={reservasConfirmadas} />
-          <StatCard etiqueta="Paellas reservadas" valor={`${paellasTotal}/7 por turno`} acento="text-amber-600" />
-          <StatCard etiqueta="Canceladas" valor={reservasCanceladas} acento="text-gray-400" />
+          {cargando ? (
+            <p className="text-[#8a929b]">Cargando...</p>
+          ) : reservasConfirmadas === 0 ? (
+            <div className="rounded-2xl border border-dashed border-[#d6d0c2] bg-white/60 px-6 py-16 text-center">
+              <p className="font-display text-[22px] font-semibold text-mediterraneo-700">
+                Sin reservas todavía
+              </p>
+              <p className="mx-auto mt-2 max-w-sm text-sm text-[#8a929b]">
+                No hay ninguna reserva para este día. Crea la primera o espera a que entren desde la
+                web o el teléfono.
+              </p>
+              <button
+                onClick={() => setFranjaModal(FRANJAS[0])}
+                className="mt-5 inline-flex rounded-[10px] bg-mediterraneo-600 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-mediterraneo-700"
+              >
+                Crear primera reserva
+              </button>
+            </div>
+          ) : filtrando && reservasFiltradas.length === 0 ? (
+            <div className="rounded-2xl border border-[#ece7dc] bg-white px-6 py-14 text-center text-sm text-[#8a929b]">
+              No hay reservas que coincidan con la búsqueda.
+            </div>
+          ) : (
+            <CalendarioDia
+              franjas={franjas}
+              reservas={reservasFiltradas}
+              filtrando={filtrando}
+              onToggleLlegada={toggleLlegada}
+              onEditar={setReservaEditar}
+              onEliminar={setReservaEliminar}
+              onNuevaEnFranja={setFranjaModal}
+            />
+          )}
         </div>
-
-        {cargando ? (
-          <p className="text-gray-500">Cargando...</p>
-        ) : (
-          <CalendarioDia
-            franjas={franjas}
-            reservas={reservas}
-            onPedirCambioEstado={setReservaPendiente}
-            onNuevaEnFranja={setFranjaModal}
-          />
-        )}
       </main>
 
       {franjaModal && (
@@ -152,11 +293,20 @@ export default function Dashboard({ token, onLogout }: Props) {
         />
       )}
 
-      {reservaPendiente && (
-        <ConfirmarCambioEstado
-          reserva={reservaPendiente}
-          onConfirmar={confirmarCambioEstado}
-          onCerrar={() => setReservaPendiente(null)}
+      {reservaEditar && (
+        <EditarReservaModal
+          api={api}
+          reserva={reservaEditar}
+          onCerrar={() => setReservaEditar(null)}
+          onGuardada={cargar}
+        />
+      )}
+
+      {reservaEliminar && (
+        <ConfirmarEliminar
+          reserva={reservaEliminar}
+          onConfirmar={confirmarEliminar}
+          onCerrar={() => setReservaEliminar(null)}
         />
       )}
     </div>

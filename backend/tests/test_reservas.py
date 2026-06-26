@@ -66,19 +66,73 @@ async def test_get_reservas_filtra_por_fecha(client, auth_headers):
     assert reservas[0]["fecha"] == "2026-07-06"
 
 
-async def test_patch_reserva_cambia_estado(client, auth_headers):
+async def test_patch_reserva_edita_campos(client, auth_headers):
     creada = await client.post("/reservas", json=_payload(fecha="2026-07-08"))
     reserva_id = creada.json()["id"]
 
     response = await client.patch(
-        f"/reservas/{reserva_id}", json={"estado": "cancelada"}, headers=auth_headers
+        f"/reservas/{reserva_id}",
+        json={"personas": 6, "nombre": "Ana María"},
+        headers=auth_headers,
     )
     assert response.status_code == 200
-    assert response.json()["estado"] == "cancelada"
+    body = response.json()
+    assert body["personas"] == 6
+    assert body["nombre"] == "Ana María"
+
+
+async def test_patch_reserva_marca_llegada(client, auth_headers):
+    creada = await client.post("/reservas", json=_payload(fecha="2026-07-09"))
+    reserva_id = creada.json()["id"]
+    assert creada.json()["ha_llegado"] is False
+
+    response = await client.patch(
+        f"/reservas/{reserva_id}", json={"ha_llegado": True}, headers=auth_headers
+    )
+    assert response.status_code == 200
+    assert response.json()["ha_llegado"] is True
+
+
+async def test_patch_reserva_a_franja_sin_paella_devuelve_409(client, auth_headers):
+    # Llenamos 21:00 con 7 paellas y creamos una reserva sin paella en otra franja.
+    for _ in range(7):
+        r = await client.post("/reservas", json=_payload(fecha="2026-07-10", franja="21:00"))
+        assert r.status_code == 201
+    otra = await client.post(
+        "/reservas", json=_payload(fecha="2026-07-10", franja="19:00", quiere_paella=False)
+    )
+    reserva_id = otra.json()["id"]
+
+    # Moverla a 21:00 pidiendo paella debe chocar con el cupo de paellas.
+    response = await client.patch(
+        f"/reservas/{reserva_id}",
+        json={"franja": "21:00", "quiere_paella": True},
+        headers=auth_headers,
+    )
+    assert response.status_code == 409
+    assert response.json()["detail"]["motivo"] == "paellas"
 
 
 async def test_patch_reserva_inexistente_devuelve_404(client, auth_headers):
     response = await client.patch(
-        "/reservas/999999", json={"estado": "cancelada"}, headers=auth_headers
+        "/reservas/999999", json={"personas": 3}, headers=auth_headers
     )
+    assert response.status_code == 404
+
+
+async def test_delete_reserva(client, auth_headers):
+    creada = await client.post("/reservas", json=_payload(fecha="2026-07-11"))
+    reserva_id = creada.json()["id"]
+
+    borrada = await client.delete(f"/reservas/{reserva_id}", headers=auth_headers)
+    assert borrada.status_code == 204
+
+    listado = await client.get(
+        "/reservas", params={"fecha": "2026-07-11"}, headers=auth_headers
+    )
+    assert all(r["id"] != reserva_id for r in listado.json())
+
+
+async def test_delete_reserva_inexistente_devuelve_404(client, auth_headers):
+    response = await client.delete("/reservas/999999", headers=auth_headers)
     assert response.status_code == 404

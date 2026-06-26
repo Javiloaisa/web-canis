@@ -9,7 +9,7 @@ from app.constants import FRANJAS
 from app.db import get_db
 from app.models import Reserva
 from app.schemas import ReservaCreate, ReservaOut, ReservaUpdate
-from app.services.disponibilidad import SinCupoError, crear_reserva_atomica
+from app.services.disponibilidad import SinCupoError, crear_reserva_atomica, editar_reserva
 
 router = APIRouter(tags=["reservas"])
 
@@ -51,10 +51,29 @@ async def patch_reserva(
     db: AsyncSession = Depends(get_db),
     _admin: str = Depends(get_admin_actual),
 ) -> Reserva:
+    if data.franja is not None and data.franja not in FRANJAS:
+        raise HTTPException(status_code=400, detail="Franja no válida")
+    if data.personas is not None and data.personas < 1:
+        raise HTTPException(status_code=400, detail="Número de personas no válido")
+
+    try:
+        reserva = await editar_reserva(db, reserva_id, data)
+    except SinCupoError as exc:
+        raise HTTPException(status_code=409, detail={"motivo": exc.motivo}) from exc
+
+    if reserva is None:
+        raise HTTPException(status_code=404, detail="Reserva no encontrada")
+    return reserva
+
+
+@router.delete("/reservas/{reserva_id}", status_code=204)
+async def delete_reserva(
+    reserva_id: int,
+    db: AsyncSession = Depends(get_db),
+    _admin: str = Depends(get_admin_actual),
+) -> None:
     reserva = await db.get(Reserva, reserva_id)
     if reserva is None:
         raise HTTPException(status_code=404, detail="Reserva no encontrada")
-    reserva.estado = data.estado
+    await db.delete(reserva)
     await db.commit()
-    await db.refresh(reserva)
-    return reserva

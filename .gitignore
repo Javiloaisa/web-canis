@@ -13,6 +13,11 @@ dist/
 .env
 .env.local
 
+# Bases de datos locales (SQLite de desarrollo)
+*.db
+*.sqlite
+*.sqlite3
+
 # Editor/OS
 .DS_Store
 Thumbs.db
